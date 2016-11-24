@@ -2,6 +2,7 @@ from random import randint
 import time
 import pygame
 from pygame.locals import *
+import sys
 
                                           
 
@@ -28,6 +29,7 @@ play_field = draw_map(size,thr_x)
 pygame.init()
 pixel_size = 10
 
+# Vyvtoreni okna s definovanym poctem policek
 display_size = size*pixel_size
 DISPLAY=pygame.display.set_mode((display_size,display_size),0,32)
 
@@ -35,14 +37,16 @@ WHITE=(255,255,255)
 BLACK=(0,0,0)
 GREEN=(0,255,0)
 
-
+# Vyplni pozadi barvou
 DISPLAY.fill(GREEN)   
 
     
 def find_all(my_list,sign):
+    '''Najde pocet vyskytu nejakeho znaku v seznamu '''
     return len([i for i, x in enumerate(my_list) if x == sign])
     
 def kill_or_ress(field,list_of_positions,sign):
+    '''V poli vymeni vsechny znaky na pozicich uvedenych v list_of_positions za znak sign'''
     for position in list_of_positions:
         field[position[0]][position[1]] = sign
     return field
@@ -56,7 +60,7 @@ while True:
         if event.type==QUIT:
             pygame.quit()
             sys.exit()
-
+    # Pro kazdy bod se najdou vsichni existujici sousedi
     for line in range(0,size):
         for col in range(0,size):
             okoli = []
@@ -122,7 +126,7 @@ while True:
                 okoli.extend([S,N,W,E,NE,NW,SW,SE])
             
             
-           
+            # Pravidla hry - kdy bunka umira/oziva/preziva          
             if play_field[line][col] == 'x':
                 if (find_all(okoli,'x') < 2): 
                     kill.append([line,col])
@@ -135,19 +139,25 @@ while True:
                     ress.append([line,col])
                 else:
                     pass               
-                
+    # Zmeneni vsech bunek, ktere maji zmenit stav       
     play_field = kill_or_ress(play_field,kill,'.')
     play_field = kill_or_ress(play_field,ress,'x')                
  
-    for i in range(size): # vypsani pole
-        for j in range(size):
-            if play_field[i][j]=='.':
-                pygame.draw.rect(DISPLAY,WHITE,(pixel_size*i,pixel_size*j,pixel_size*i+pixel_size,pixel_size*j+pixel_size))
+    # vykresleni pole, prevedeni ASCII vystupu do zobrazovaciho okna
+    for i in range(0,display_size,pixel_size): 
+        for j in range(0,display_size,pixel_size):
+            # Vykresli ctverec nejake barvy do okna DISPLAY na souradnice definovane souradnicemi i a j,
+            i_field_position = i//pixel_size #prevedeni pozic z rozliseni grafickeho okna do rozliseni ascii pole
+            j_field_position = j//pixel_size
+            if play_field[i_field_position][j_field_position]=='.': 
+                pygame.draw.rect(DISPLAY,WHITE,(i,j,i+pixel_size,j+pixel_size))
             else:
-                pygame.draw.rect(DISPLAY,BLACK,(pixel_size*i,pixel_size*j,pixel_size*i+pixel_size,pixel_size*j+pixel_size))
-
+                pygame.draw.rect(DISPLAY,BLACK,(i,j,i+pixel_size,j+pixel_size))
+    
+    # prekresleni okna
     pygame.display.update()
 
-   
+    # zpozdeni vypoctu - v pripade vykreslovani do terminalu nutne, aby bylo mozno hru sledovat
+    # pri vykreslovani do okna skoro zbytecne- vypocet zabere podstatne delsi dobu
     time.sleep(0.0005)
     
